@@ -1,5 +1,6 @@
 // Top-level app. Loads a league JSON, wires the three views (Table,
-// Predictor, Season), and re-renders on interactions.
+// Predictor, Season), and re-renders on interactions. Supports
+// switching between leagues via the header picker.
 
 import { predict } from "./poisson.js";
 import { simulateSeason } from "./simulate.js";
@@ -8,6 +9,7 @@ const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => [...document.querySelectorAll(sel)];
 
 const state = {
+  league: "epl",
   data: null,
   view: "table",
   home: null,
@@ -42,7 +44,7 @@ function renderHeader(data) {
   const banner = $("#demo-banner");
   if (data.demo) {
     banner.hidden = false;
-    banner.textContent = data.demo_note || "Demo dataset — real EPL data lands once the CI cron runs.";
+    banner.textContent = data.demo_note || "Demo dataset — real data lands once the CI cron runs.";
   } else {
     banner.hidden = true;
   }
@@ -218,15 +220,59 @@ function switchView(name) {
   $$(".view").forEach(v => v.hidden = v.id !== `view-${name}`);
 }
 
+// --- league switching ------------------------------------------------
+
+async function switchLeague(code) {
+  if (code === state.league && state.data) return;
+  state.league = code;
+  state.simulation = null;
+
+  $$(".league-btn").forEach(b => b.classList.toggle("active", b.dataset.league === code));
+
+  $("#app").hidden = true;
+  $("#loading").hidden = false;
+  $("#loading").innerHTML = "<p>Loading…</p>";
+
+  try {
+    state.data = await loadLeague(code);
+  } catch (e) {
+    $("#loading").innerHTML = `
+      <p><strong>No data yet.</strong> The pipeline hasn't produced <code>docs/data/${code}.json</code>.</p>
+      <p class="muted">Run <code>python scripts/build_elo.py --league all</code> locally, or wait for the CI cron to publish.</p>
+    `;
+    return;
+  }
+
+  $("#loading").hidden = true;
+  $("#app").hidden = false;
+
+  renderHeader(state.data);
+  renderTable(state.data);
+  fillTeamSelects(state.data);
+  renderPredictor(state.data);
+  renderSeason(state.data);
+
+  history.replaceState(null, "", `?league=${code}`);
+}
+
 // --- boot ------------------------------------------------------------
 
 async function boot() {
+  const params = new URLSearchParams(location.search);
+  const initial = params.get("league") || "epl";
+  state.league = initial;
+
+  $$(".league-btn").forEach(b => {
+    b.classList.toggle("active", b.dataset.league === initial);
+    b.addEventListener("click", () => switchLeague(b.dataset.league));
+  });
+
   try {
-    state.data = await loadLeague("epl");
+    state.data = await loadLeague(initial);
   } catch (e) {
     $("#loading").innerHTML = `
-      <p><strong>No data yet.</strong> The pipeline hasn't produced <code>docs/data/epl.json</code>.</p>
-      <p class="muted">Run <code>python scripts/build_elo.py --league EPL</code> locally, or wait for the CI cron (M4) to publish.</p>
+      <p><strong>No data yet.</strong> The pipeline hasn't produced <code>docs/data/${initial}.json</code>.</p>
+      <p class="muted">Run <code>python scripts/build_elo.py --league all</code> locally, or wait for the CI cron to publish.</p>
     `;
     return;
   }
@@ -250,6 +296,8 @@ async function boot() {
     renderPredictor(state.data);
   });
   $("#sim-run").addEventListener("click", () => runSimulation(state.data));
+
+  history.replaceState(null, "", `?league=${initial}`);
 }
 
 boot();

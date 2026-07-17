@@ -3,14 +3,23 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>forcast — English Premier League</title>
-    <meta name="description" content="Static-site Elo + Poisson forecasts for the English Premier League." />
+    <title>forcast — Football League Forecasts</title>
+    <meta name="description" content="Static-site Elo + Poisson forecasts for Europe's top football leagues." />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <header>
       <div class="wrap">
-        <h1 id="league-name">forcast</h1>
+        <div class="header-row">
+          <h1 id="league-name">forcast</h1>
+          <nav class="league-picker">
+            <button class="league-btn active" data-league="epl">EPL</button>
+            <button class="league-btn" data-league="laliga">La Liga</button>
+            <button class="league-btn" data-league="seriea">Serie A</button>
+            <button class="league-btn" data-league="bundesliga">Bundesliga</button>
+            <button class="league-btn" data-league="ligue1">Ligue 1</button>
+          </nav>
+        </div>
         <p class="sub">
           <span id="season-label">Loading…</span>
           <span class="dot">·</span>
