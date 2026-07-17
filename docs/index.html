@@ -3,13 +3,106 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>forcast</title>
+    <title>forcast — English Premier League</title>
+    <meta name="description" content="Static-site Elo + Poisson forecasts for the English Premier League." />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <main>
-      <h1>forcast</h1>
-      <p>Football forecasts, coming soon. See the <a href="https://github.com/akinolu52/forcast">repo</a>.</p>
+    <header>
+      <div class="wrap">
+        <h1 id="league-name">forcast</h1>
+        <p class="sub">
+          <span id="season-label">Loading…</span>
+          <span class="dot">·</span>
+          <span id="generated"></span>
+        </p>
+      </div>
+    </header>
+
+    <div id="demo-banner" class="banner" hidden></div>
+
+    <main class="wrap">
+      <div id="loading" class="loading">
+        <p>Loading…</p>
+      </div>
+
+      <div id="app" hidden>
+        <nav class="tabs">
+          <button class="tab active" data-view="table">Table</button>
+          <button class="tab" data-view="predictor">Predictor</button>
+          <button class="tab" data-view="season">Season simulator</button>
+        </nav>
+
+        <section id="view-table" class="view">
+          <table class="league-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th class="name">Team</th>
+                <th title="Played">P</th>
+                <th title="Won">W</th>
+                <th title="Drawn">D</th>
+                <th title="Lost">L</th>
+                <th title="Goals for">GF</th>
+                <th title="Goals against">GA</th>
+                <th title="Goal difference">GD</th>
+                <th title="Points">Pts</th>
+                <th>Elo</th>
+              </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+          </table>
+        </section>
+
+        <section id="view-predictor" class="view" hidden>
+          <div class="pred-controls">
+            <label>
+              <span>Home</span>
+              <select id="pred-home"></select>
+            </label>
+            <button id="pred-swap" class="swap" title="Swap teams">⇄</button>
+            <label>
+              <span>Away</span>
+              <select id="pred-away"></select>
+            </label>
+          </div>
+          <div id="pred-result"></div>
+        </section>
+
+        <section id="view-season" class="view" hidden>
+          <div class="sim-controls">
+            <label>
+              Runs
+              <input id="sim-runs" type="number" min="500" max="20000" step="500" value="5000" />
+            </label>
+            <button id="sim-run" class="primary">Run simulation</button>
+            <span id="sim-status" class="muted">Click Run to Monte-Carlo the remaining fixtures.</span>
+          </div>
+          <table class="season-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th class="name">Team</th>
+                <th>Expected pts</th>
+                <th>Champion</th>
+                <th>Top 4</th>
+                <th>Relegation</th>
+              </tr>
+            </thead>
+            <tbody id="sim-body"></tbody>
+          </table>
+        </section>
+      </div>
     </main>
+
+    <footer class="wrap">
+      <p>
+        <a href="https://github.com/akinolu52/forcast">source</a>
+        · Elo + Poisson model, MIT licensed
+        · Match data via <a href="https://www.football-data.co.uk/">football-data.co.uk</a>
+      </p>
+    </footer>
+
+    <script type="module" src="js/main.js"></script>
   </body>
 </html>

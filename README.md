@@ -16,7 +16,7 @@ Under active development. See [`PLAN.md`](./PLAN.md) for the roadmap.
 - [x] **M0** Bootstrap
 - [x] **M1** EPL data pipeline + Elo
 - [x] **M2** Match predictor + calibration
-- [ ] **M3** EPL site v1
+- [x] **M3** EPL site v1
 - [ ] **M4** Automation (weekly cron)
 - [ ] **M5** La Liga, Serie A, Bundesliga, Ligue 1
 - [ ] **M6** UCL
