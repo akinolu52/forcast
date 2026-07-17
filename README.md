@@ -19,7 +19,7 @@ Under active development. See [`PLAN.md`](./PLAN.md) for the roadmap.
 - [x] **M3** EPL site v1
 - [x] **M4** Automation (weekly cron)
 - [x] **M5** La Liga, Serie A, Bundesliga, Ligue 1
-- [ ] **M6** UCL
+- [x] **M6** UCL
 - [ ] **M7** TimesFM (stretch)
 
 ## How it works
