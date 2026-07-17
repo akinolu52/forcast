@@ -41,6 +41,7 @@
           <button class="tab active" data-view="table">Table</button>
           <button class="tab" data-view="predictor">Predictor</button>
           <button class="tab" data-view="season">Season simulator</button>
+          <button class="tab" data-view="forecast">Elo forecast</button>
         </nav>
 
         <section id="view-table" class="view">
@@ -85,6 +86,10 @@
               Runs
               <input id="sim-runs" type="number" min="500" max="20000" step="500" value="5000" />
             </label>
+            <label class="toggle-label">
+              <input id="sim-projected" type="checkbox" />
+              Use projected Elo
+            </label>
             <button id="sim-run" class="primary">Run simulation</button>
             <span id="sim-status" class="muted">Click Run to Monte-Carlo the remaining fixtures.</span>
           </div>
@@ -100,6 +105,31 @@
               </tr>
             </thead>
             <tbody id="sim-body"></tbody>
+          </table>
+        </section>
+
+        <section id="view-forecast" class="view" hidden>
+          <div class="forecast-controls">
+            <label>
+              Horizon (months)
+              <input id="fc-horizon" type="number" min="1" max="12" value="6" />
+            </label>
+            <button id="fc-run" class="primary">Run forecast</button>
+            <span id="fc-status" class="muted">Forecast each team's Elo trajectory using trend + seasonality analysis.</span>
+          </div>
+          <div id="fc-engine" class="muted"></div>
+          <table class="forecast-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th class="name">Team</th>
+                <th>Current Elo</th>
+                <th>Projected Elo</th>
+                <th>Change</th>
+                <th>Trajectory</th>
+              </tr>
+            </thead>
+            <tbody id="fc-body"></tbody>
           </table>
         </section>
       </div>

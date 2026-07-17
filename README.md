@@ -20,7 +20,7 @@ Under active development. See [`PLAN.md`](./PLAN.md) for the roadmap.
 - [x] **M4** Automation (weekly cron)
 - [x] **M5** La Liga, Serie A, Bundesliga, Ligue 1
 - [x] **M6** UCL
-- [ ] **M7** TimesFM (stretch)
+- [x] **M7** Elo trajectory forecasting
 
 ## How it works
 
