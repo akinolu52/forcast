@@ -1,15 +1,15 @@
-"""Generate a demo EPL dataset with realistic club names and Elo values.
+"""Generate demo datasets for all leagues with realistic club names and Elo values.
 
-Purpose: give the live site something to show before M4's CI cron
+Purpose: give the live site something to show before the CI cron
 starts publishing real football-data.co.uk numbers. The Elo pipeline
-+ predictor + Monte Carlo all run on this file exactly the same way
++ predictor + Monte Carlo all run on these files exactly the same way
 they will on real data — only the underlying match results are
 synthesized here.
 
-The synthetic season is generated with realistic Poisson goal rates
-biased by a hidden "true strength" per team (Man City strongest,
+Each synthetic season is generated with realistic Poisson goal rates
+biased by a hidden "true strength" per team (strongest clubs first,
 promoted sides weakest), so the ratings the pipeline recovers should
-look plausible relative to how these clubs are actually seen.
+look plausible.
 
 The output is marked with `"demo": true` and a `demo_note` so the UI
 banner surfaces the caveat.
@@ -33,26 +33,83 @@ import build_elo  # noqa: E402
 from leagues import LEAGUES  # noqa: E402
 
 
-# 2024/25 EPL clubs, roughly ordered strongest → weakest based on
-# widely-agreed pre-season expectations. Only used to seed the
-# synthetic goal-generating process; the pipeline recomputes Elo
-# from scratch off the resulting matches.
-CURRENT_EPL = [
-    "Man City", "Arsenal", "Liverpool", "Chelsea", "Tottenham",
-    "Man United", "Newcastle", "Aston Villa", "Brighton", "West Ham",
-    "Crystal Palace", "Fulham", "Brentford", "Wolves", "Everton",
-    "Bournemouth", "Nottingham Forest", "Leicester", "Ipswich", "Southampton",
-]
-
-# A prior season with 3 different promoted sides (Luton, Sheffield United, Burnley
-# were the 2023/24 promoted set — realistic to include for the rollover step).
-PREV_EPL = [
-    "Man City", "Arsenal", "Liverpool", "Chelsea", "Tottenham",
-    "Man United", "Newcastle", "Aston Villa", "Brighton", "West Ham",
-    "Crystal Palace", "Fulham", "Brentford", "Wolves", "Everton",
-    "Bournemouth", "Nottingham Forest",
-    "Luton", "Sheffield United", "Burnley",  # relegated at end of 2023/24
-]
+LEAGUE_CLUBS: dict[str, dict] = {
+    "EPL": {
+        "current": [
+            "Man City", "Arsenal", "Liverpool", "Chelsea", "Tottenham",
+            "Man United", "Newcastle", "Aston Villa", "Brighton", "West Ham",
+            "Crystal Palace", "Fulham", "Brentford", "Wolves", "Everton",
+            "Bournemouth", "Nottingham Forest", "Leicester", "Ipswich", "Southampton",
+        ],
+        "prev": [
+            "Man City", "Arsenal", "Liverpool", "Chelsea", "Tottenham",
+            "Man United", "Newcastle", "Aston Villa", "Brighton", "West Ham",
+            "Crystal Palace", "Fulham", "Brentford", "Wolves", "Everton",
+            "Bournemouth", "Nottingham Forest",
+            "Luton", "Sheffield United", "Burnley",
+        ],
+    },
+    "LaLiga": {
+        "current": [
+            "Real Madrid", "Barcelona", "Ath Madrid", "Athletic Club", "Real Sociedad",
+            "Real Betis", "Villarreal", "Girona", "Osasuna", "Celta",
+            "Sevilla", "Getafe", "Mallorca", "Rayo Vallecano", "Las Palmas",
+            "Alaves", "Leganes", "Valladolid", "Espanyol", "Valencia",
+        ],
+        "prev": [
+            "Real Madrid", "Barcelona", "Ath Madrid", "Athletic Club", "Real Sociedad",
+            "Real Betis", "Villarreal", "Girona", "Osasuna", "Celta",
+            "Sevilla", "Getafe", "Mallorca", "Rayo Vallecano", "Las Palmas",
+            "Alaves", "Valencia",
+            "Cadiz", "Almeria", "Granada",
+        ],
+    },
+    "SerieA": {
+        "current": [
+            "Inter", "Napoli", "Atalanta", "Juventus", "AC Milan",
+            "Lazio", "Roma", "Fiorentina", "Bologna", "Torino",
+            "Udinese", "Genoa", "Cagliari", "Empoli", "Parma",
+            "Verona", "Como", "Monza", "Lecce", "Venezia",
+        ],
+        "prev": [
+            "Inter", "Napoli", "Atalanta", "Juventus", "AC Milan",
+            "Lazio", "Roma", "Fiorentina", "Bologna", "Torino",
+            "Udinese", "Genoa", "Cagliari", "Empoli", "Verona",
+            "Monza", "Lecce",
+            "Sassuolo", "Frosinone", "Salernitana",
+        ],
+    },
+    "Bundesliga": {
+        "current": [
+            "Bayern Munich", "Leverkusen", "Dortmund", "RB Leipzig", "Stuttgart",
+            "Ein Frankfurt", "Freiburg", "Wolfsburg", "M'gladbach", "Mainz",
+            "Werder Bremen", "Hoffenheim", "Augsburg", "Union Berlin", "Bochum",
+            "St Pauli", "Holstein Kiel", "Heidenheim",
+        ],
+        "prev": [
+            "Bayern Munich", "Leverkusen", "Dortmund", "RB Leipzig", "Stuttgart",
+            "Ein Frankfurt", "Freiburg", "Wolfsburg", "M'gladbach", "Mainz",
+            "Werder Bremen", "Hoffenheim", "Augsburg", "Union Berlin", "Bochum",
+            "Heidenheim",
+            "Darmstadt", "Koln",
+        ],
+    },
+    "Ligue1": {
+        "current": [
+            "Paris SG", "Marseille", "Monaco", "Lille", "Lyon",
+            "Nice", "Lens", "Rennes", "Strasbourg", "Toulouse",
+            "Nantes", "Reims", "Montpellier", "Brest", "Auxerre",
+            "Angers", "St Etienne", "Le Havre",
+        ],
+        "prev": [
+            "Paris SG", "Marseille", "Monaco", "Lille", "Lyon",
+            "Nice", "Lens", "Rennes", "Strasbourg", "Toulouse",
+            "Nantes", "Reims", "Montpellier", "Brest",
+            "Clermont", "Lorient", "Metz",
+            "Auxerre",
+        ],
+    },
+}
 
 
 def generate_matches(
@@ -121,39 +178,46 @@ def write_csv(path: pathlib.Path, rows: list[dict]) -> None:
         w.writerows(rows)
 
 
+def build_one(code: str, played_fraction: float, base_seed: int) -> None:
+    league = LEAGUES[code]
+    clubs = LEAGUE_CLUBS[code]
+
+    tmp = pathlib.Path(build_elo.DATA_DIR)
+    seed = base_seed + hash(code) % 10000
+
+    write_csv(tmp / code / "2023.csv",
+              generate_matches(clubs["prev"], 2023, seed))
+    write_csv(tmp / code / "2024.csv",
+              generate_matches(clubs["current"], 2024, seed + 1,
+                               played_fraction=played_fraction))
+
+    payload = build_elo.build_league(league)
+    payload["demo"] = True
+    payload["demo_note"] = (
+        f"Demo dataset — synthetic matches with real {league.name} club names. "
+        "Real match results will replace this once the CI cron runs."
+    )
+    out = build_elo.write_output(league, payload)
+    print(f"{code}: wrote {out}")
+    print(f"  {len(payload['teams'])} teams, {len(payload['played'])} played, "
+          f"{len(payload['fixtures'])} scheduled fixtures")
+    print(f"  Elo leader: {payload['teams'][0]['name']} "
+          f"({payload['teams'][0]['elo']})")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--played-fraction", type=float, default=0.6,
                     help="portion of the current season already played")
     ap.add_argument("--seed", type=int, default=20250817)
+    ap.add_argument("--league", choices=list(LEAGUES) + ["all"], default="all")
     args = ap.parse_args()
 
-    tmp = pathlib.Path(build_elo.DATA_DIR)
-    tmp.mkdir(parents=True, exist_ok=True)
+    pathlib.Path(build_elo.DATA_DIR).mkdir(parents=True, exist_ok=True)
 
-    write_csv(tmp / "EPL" / "2023.csv", generate_matches(PREV_EPL, 2023, args.seed))
-    write_csv(tmp / "EPL" / "2024.csv", generate_matches(CURRENT_EPL, 2024, args.seed + 1,
-                                                        played_fraction=args.played_fraction))
-
-    league = LEAGUES["EPL"]
-    payload = build_elo.build_league(league)
-    payload["demo"] = True
-    payload["demo_note"] = (
-        "Demo dataset — synthetic matches with real EPL club names, so the "
-        "predictor and simulator have something to work on. Real match "
-        "results will replace this once the CI cron runs."
-    )
-    out = build_elo.write_output(league, payload)
-    print(f"wrote {out}")
-    print(f"  {len(payload['teams'])} teams, {len(payload['played'])} played, "
-          f"{len(payload['fixtures'])} scheduled fixtures")
-    print(f"  home advantage: {payload['home_advantage_elo']} elo")
-    print(f"  calibration: mu_total={payload['calibration']['mu_total']} "
-          f"beta={payload['calibration']['beta']}")
-    print(f"  top of table: {payload['table'][0]['name']} "
-          f"({payload['table'][0]['pts']} pts)")
-    print(f"  Elo leader:  {payload['teams'][0]['name']} "
-          f"({payload['teams'][0]['elo']})")
+    codes = [args.league] if args.league != "all" else list(LEAGUE_CLUBS)
+    for code in codes:
+        build_one(code, args.played_fraction, args.seed)
 
 
 if __name__ == "__main__":

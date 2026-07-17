@@ -56,6 +56,37 @@ header h1 {
   font-size: 1.75rem;
   letter-spacing: -0.01em;
 }
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.league-picker {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+.league-btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.league-btn:hover { color: var(--fg); border-color: var(--muted); }
+.league-btn.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
 header .sub {
   margin: 0.35rem 0 0;
   color: var(--muted);

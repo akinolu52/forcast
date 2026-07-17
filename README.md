@@ -18,7 +18,7 @@ Under active development. See [`PLAN.md`](./PLAN.md) for the roadmap.
 - [x] **M2** Match predictor + calibration
 - [x] **M3** EPL site v1
 - [x] **M4** Automation (weekly cron)
-- [ ] **M5** La Liga, Serie A, Bundesliga, Ligue 1
+- [x] **M5** La Liga, Serie A, Bundesliga, Ligue 1
 - [ ] **M6** UCL
 - [ ] **M7** TimesFM (stretch)
 
@@ -43,10 +43,10 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r scripts/requirements.txt
 
 # 1. Fetch historical CSVs (cached under ./data; current season re-downloads)
-python scripts/fetch_data.py --league EPL
+python scripts/fetch_data.py --league all   # or: --league EPL
 
-# 2. Build ratings and serialize docs/data/epl.json
-python scripts/build_elo.py --league EPL
+# 2. Build ratings and serialize docs/data/*.json
+python scripts/build_elo.py --league all    # or: --league EPL
 
 # 3. Verify the pipeline end-to-end without touching the network
 python scripts/self_check.py
