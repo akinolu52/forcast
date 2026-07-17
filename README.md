@@ -12,7 +12,7 @@ in-browser Poisson match simulator. No servers, no API keys, no runtime backend.
 Under active development. See [`PLAN.md`](./PLAN.md) for the roadmap.
 
 - [x] **M0** Bootstrap
-- [ ] **M1** EPL data pipeline + Elo
+- [x] **M1** EPL data pipeline + Elo
 - [ ] **M2** Match predictor + calibration
 - [ ] **M3** EPL site v1
 - [ ] **M4** Automation (weekly cron)
@@ -36,14 +36,25 @@ Under active development. See [`PLAN.md`](./PLAN.md) for the roadmap.
 ## Local development
 
 ```bash
-# Regenerate JSON (needs Python 3.11+)
+# Python 3.11+; only external dep is httpx for the fetcher.
 python -m venv .venv && source .venv/bin/activate
 pip install -r scripts/requirements.txt
+
+# 1. Fetch historical CSVs (cached under ./data; current season re-downloads)
+python scripts/fetch_data.py --league EPL
+
+# 2. Build ratings and serialize docs/data/epl.json
 python scripts/build_elo.py --league EPL
 
-# Serve the site
+# 3. Verify the pipeline end-to-end without touching the network
+python scripts/self_check.py
+
+# 4. Serve the site
 python -m http.server --directory docs 8000
 ```
+
+`docs/data/*.json` is regenerated from source and not committed by hand —
+CI (see `.github/workflows/update.yml`, M4) refreshes it twice a week.
 
 ## Attribution
 
