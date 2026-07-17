@@ -1,0 +1,97 @@
+name: Refresh league ratings
+
+on:
+  # football-data.co.uk publishes updated CSVs on Mondays and Fridays,
+  # so we pick a window a few hours after each so the current-season
+  # file has settled. Times are UTC.
+  schedule:
+    - cron: "0 6 * * 2"    # Tuesday 06:00
+    - cron: "0 6 * * 6"    # Saturday 06:00
+  # Manual trigger for testing / one-off refreshes.
+  workflow_dispatch:
+    inputs:
+      league:
+        description: "Which league to refresh"
+        required: false
+        default: "EPL"
+        type: choice
+        options:
+          - EPL
+          - LaLiga
+          - SerieA
+          - Bundesliga
+          - Ligue1
+          - all
+      refresh:
+        description: "Re-download cached seasons"
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: refresh-ratings
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: scripts/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r scripts/requirements.txt
+
+      - name: Pick league(s)
+        id: pick
+        env:
+          INPUT_LEAGUE: ${{ github.event.inputs.league }}
+        run: |
+          # Cron runs default to `all`; workflow_dispatch honors the input.
+          if [ -z "${INPUT_LEAGUE}" ]; then
+            echo "league=all" >> "$GITHUB_OUTPUT"
+          else
+            echo "league=${INPUT_LEAGUE}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Fetch match CSVs
+        run: |
+          FLAGS=""
+          if [ "${{ github.event.inputs.refresh }}" = "true" ]; then
+            FLAGS="--refresh"
+          fi
+          python scripts/fetch_data.py --league "${{ steps.pick.outputs.league }}" $FLAGS
+
+      - name: Rebuild league JSON
+        run: |
+          python scripts/build_elo.py --league "${{ steps.pick.outputs.league }}"
+
+      - name: Run predictor self-check
+        run: python scripts/self_check.py
+
+      - name: Commit and push if the payload changed
+        run: |
+          git config user.name  "forcast-bot"
+          git config user.email "forcast-bot@users.noreply.github.com"
+
+          git add docs/data/
+          if git diff --cached --quiet; then
+            echo "No changes to publish."
+            exit 0
+          fi
+
+          # Include the league(s) refreshed in the commit subject so the
+          # git log doubles as a refresh journal.
+          LEAGUE="${{ steps.pick.outputs.league }}"
+          git commit -m "data: refresh ${LEAGUE} ratings"
+          git push
