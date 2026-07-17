@@ -7,6 +7,8 @@ League, Spanish La Liga, Italian Serie A, German Bundesliga, French Ligue 1,
 and the UEFA Champions League — using an offline Elo pipeline and an
 in-browser Poisson match simulator. No servers, no API keys, no runtime backend.
 
+**Live site:** https://akinolu52.github.io/forcast/
+
 ## Status
 
 Under active development. See [`PLAN.md`](./PLAN.md) for the roadmap.
