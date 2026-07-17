@@ -47,6 +47,7 @@ from dataclasses import dataclass, field
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 from leagues import LEAGUES, League  # noqa: E402
+import calibrate  # noqa: E402
 
 DATA_DIR = pathlib.Path(__file__).parent.parent / "data"
 OUT_DIR = pathlib.Path(__file__).parent.parent / "docs" / "data"
@@ -294,11 +295,20 @@ def build_league(league: League) -> dict:
 
     teams: dict[str, TeamState] = {}
     prev_matches: list[dict] = []
+    calibration_samples: list[dict] = []
+    calibration_from = max(0, len(seasons) - 2)  # last two seasons
     for i, season_matches in enumerate(seasons):
         rollover(teams, prev_matches, season_matches, first=(i == 0))
         for m in season_matches:
             home = teams[m["home"]]
             away = teams[m["away"]]
+            if i >= calibration_from:
+                calibration_samples.append({
+                    "home_elo": home.elo,
+                    "away_elo": away.elo,
+                    "hg": m["hg"],
+                    "ag": m["ag"],
+                })
             update_ratings(
                 home, away, m["hg"], m["ag"],
                 k=league.k_factor, home_adv=home_adv,
@@ -312,6 +322,11 @@ def build_league(league: League) -> dict:
 
     current = seasons[-1]
     latest_csv = sorted((DATA_DIR / league.code).glob("*.csv"))[-1]
+    serialized_teams = _serialize_teams(teams, current)
+
+    # Calibrate (mu_total, beta) from the pre-match Elo snapshots captured
+    # during the last two seasons of the pass.
+    cal = calibrate.fit_from_samples(calibration_samples, home_adv=home_adv)
 
     payload = {
         "league": league.code,
@@ -319,7 +334,8 @@ def build_league(league: League) -> dict:
         "generated": dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         "season_start": int(latest_csv.stem),
         "home_advantage_elo": round(home_adv, 2),
-        "teams": _serialize_teams(teams, current),
+        "calibration": cal.as_dict(),
+        "teams": serialized_teams,
         "table": build_table(current),
         "played": [
             {"date": m["date"].isoformat(), "home": m["home"], "away": m["away"], "hg": m["hg"], "ag": m["ag"]}
