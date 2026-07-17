@@ -5,6 +5,7 @@
 import { predict } from "./poisson.js";
 import { simulateSeason } from "./simulate.js";
 import { simulateUCL } from "./ucl.js";
+import { forecastAllTeams, localForecast } from "./forecast.js";
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => [...document.querySelectorAll(sel)];
@@ -318,20 +319,123 @@ function renderUCLSeason(data) {
   `).join("");
 }
 
+function applyProjectedElo(data) {
+  const teams = data.teams.map(t => ({
+    name: t.name,
+    elo: t.elo,
+    history: t.history || [],
+  }));
+  const forecasts = forecastAllTeams(teams, 6);
+  const modified = JSON.parse(JSON.stringify(data));
+  for (const t of modified.teams) {
+    const fc = forecasts.get(t.name);
+    if (fc) t.elo = Math.round(fc.projected);
+  }
+  return modified;
+}
+
 function runSimulation(data) {
   const runs = parseInt($("#sim-runs").value, 10) || 5000;
+  const useProjected = $("#sim-projected").checked;
   const status = $("#sim-status");
   status.textContent = `Running ${runs.toLocaleString()} ${isUCL() ? "tournaments" : "seasons"}…`;
   requestAnimationFrame(() => {
+    const simData = useProjected ? applyProjectedElo(data) : data;
     let results;
     if (isUCL()) {
-      results = simulateUCL(data, { runs, seed: 42 });
+      results = simulateUCL(simData, { runs, seed: 42 });
     } else {
-      results = simulateSeason(data, { runs, seed: 42 });
+      results = simulateSeason(simData, { runs, seed: 42 });
     }
+    const label = useProjected ? " (projected Elo)" : "";
     state.simulation = { runs, results };
     renderSeason(data);
+    status.textContent = `${runs.toLocaleString()} simulated ${isUCL() ? "tournaments" : "seasons"}${label}`;
   });
+}
+
+// --- view: forecast ---------------------------------------------------
+
+function renderForecast(data) {
+  const horizon = parseInt($("#fc-horizon").value, 10) || 6;
+  const teams = data.teams.map(t => ({
+    name: t.name,
+    elo: t.elo,
+    history: t.history || [],
+  }));
+  const forecasts = forecastAllTeams(teams, horizon);
+
+  const rows = [];
+  for (const t of data.teams) {
+    const fc = forecasts.get(t.name);
+    if (!fc) continue;
+    rows.push({
+      name: t.name,
+      current: t.elo,
+      projected: fc.projected,
+      change: fc.projected - t.elo,
+      forecast: fc.forecast,
+      history: t.history || [],
+    });
+  }
+  rows.sort((a, b) => b.projected - a.projected);
+
+  const maxElo = Math.max(...rows.map(r => Math.max(r.current, r.projected)));
+  const minElo = Math.min(...rows.map(r => Math.min(r.current, ...r.forecast.map(f => f.lo))));
+  const range = maxElo - minElo || 1;
+
+  $("#fc-engine").textContent = "Engine: local (trend + seasonality)";
+  $("#fc-status").textContent = `${horizon}-month forecast for ${rows.length} teams`;
+  $("#fc-body").innerHTML = rows.map((r, i) => {
+    const spark = buildSparkline(r.history, r.forecast, minElo, range);
+    const sign = r.change >= 0 ? "+" : "";
+    const cls = r.change >= 0 ? "up" : "down";
+    return `
+      <tr>
+        <td class="pos">${i + 1}</td>
+        <td class="name">${r.name}</td>
+        <td class="num">${Math.round(r.current)}</td>
+        <td class="num">${Math.round(r.projected)}</td>
+        <td class="num elo-delta ${cls}">${sign}${Math.round(r.change)}</td>
+        <td class="spark-cell">${spark}</td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function buildSparkline(history, forecast, minElo, range) {
+  const w = 120, h = 28, pad = 2;
+  const hist = (history || []).slice(-12).map(p => p.elo);
+  const fc = forecast.map(f => f.point);
+  const lo = forecast.map(f => f.lo);
+  const hi = forecast.map(f => f.hi);
+  const total = hist.length + fc.length;
+  if (total < 2) return "";
+
+  const xStep = (w - 2 * pad) / (total - 1);
+  const y = (v) => h - pad - ((v - minElo) / range) * (h - 2 * pad);
+
+  let bandPath = "";
+  if (fc.length > 0) {
+    const startX = (hist.length - 1) * xStep + pad;
+    const pts = [];
+    for (let i = 0; i < fc.length; i++) {
+      pts.push(`${(hist.length + i) * xStep + pad},${y(hi[i])}`);
+    }
+    for (let i = fc.length - 1; i >= 0; i--) {
+      pts.push(`${(hist.length + i) * xStep + pad},${y(lo[i])}`);
+    }
+    bandPath = `<polygon points="${pts.join(" ")}" fill="var(--accent)" opacity="0.15"/>`;
+  }
+
+  const histPts = hist.map((v, i) => `${i * xStep + pad},${y(v)}`).join(" ");
+  const fcPts = [hist[hist.length - 1], ...fc].map((v, i) => `${(hist.length - 1 + i) * xStep + pad},${y(v)}`).join(" ");
+
+  return `<svg class="sparkline" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">
+    ${bandPath}
+    <polyline points="${histPts}" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+    <polyline points="${fcPts}" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="3,2"/>
+  </svg>`;
 }
 
 // --- view switching --------------------------------------------------
@@ -418,6 +522,7 @@ async function boot() {
     renderPredictor(state.data);
   });
   $("#sim-run").addEventListener("click", () => runSimulation(state.data));
+  $("#fc-run").addEventListener("click", () => renderForecast(state.data));
 
   history.replaceState(null, "", `?league=${initial}`);
 }
