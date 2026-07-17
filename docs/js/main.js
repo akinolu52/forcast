@@ -1,9 +1,10 @@
 // Top-level app. Loads a league JSON, wires the three views (Table,
 // Predictor, Season), and re-renders on interactions. Supports
-// switching between leagues via the header picker.
+// switching between leagues via the header picker, including UCL.
 
 import { predict } from "./poisson.js";
 import { simulateSeason } from "./simulate.js";
+import { simulateUCL } from "./ucl.js";
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => [...document.querySelectorAll(sel)];
@@ -21,6 +22,10 @@ async function loadLeague(code) {
   const res = await fetch(`data/${code}.json`, { cache: "no-store" });
   if (!res.ok) throw new Error(`data/${code}.json returned ${res.status}`);
   return res.json();
+}
+
+function isUCL() {
+  return state.league === "ucl";
 }
 
 // --- helpers ---------------------------------------------------------
@@ -54,10 +59,48 @@ function renderHeader(data) {
 
 function renderTable(data) {
   const tbody = $("#table-body");
+  const thead = $("#table-head");
   tbody.innerHTML = "";
+
+  if (isUCL()) {
+    thead.innerHTML = `
+      <tr>
+        <th>#</th>
+        <th class="name">Team</th>
+        <th title="Played">P</th>
+        <th title="Won">W</th>
+        <th title="Drawn">D</th>
+        <th title="Lost">L</th>
+        <th title="Goals for">GF</th>
+        <th title="Goals against">GA</th>
+        <th title="Goal difference">GD</th>
+        <th title="Points">Pts</th>
+        <th>Elo</th>
+        <th>League</th>
+      </tr>
+    `;
+  } else {
+    thead.innerHTML = `
+      <tr>
+        <th>#</th>
+        <th class="name">Team</th>
+        <th title="Played">P</th>
+        <th title="Won">W</th>
+        <th title="Drawn">D</th>
+        <th title="Lost">L</th>
+        <th title="Goals for">GF</th>
+        <th title="Goals against">GA</th>
+        <th title="Goal difference">GD</th>
+        <th title="Points">Pts</th>
+        <th>Elo</th>
+      </tr>
+    `;
+  }
+
   const eloBy = new Map(data.teams.map(t => [t.name, t]));
   const maxElo = Math.max(...data.teams.map(t => t.elo));
   const minElo = Math.min(...data.teams.map(t => t.elo));
+  const ko = data.knockout;
 
   data.table.forEach((row, i) => {
     const team = eloBy.get(row.name);
@@ -69,6 +112,20 @@ function renderTable(data) {
     const gdSign = gd > 0 ? "+" : "";
 
     const tr = document.createElement("tr");
+
+    let zoneClass = "";
+    if (isUCL() && ko) {
+      if (i < ko.auto_qualify) zoneClass = "zone-auto";
+      else if (i < ko.eliminated_below) zoneClass = "zone-playoff";
+      else zoneClass = "zone-elim";
+    }
+    if (zoneClass) tr.classList.add(zoneClass);
+
+    let leagueCol = "";
+    if (isUCL() && team) {
+      leagueCol = `<td class="league-tag">${team.league || ""}</td>`;
+    }
+
     tr.innerHTML = `
       <td class="pos">${i + 1}</td>
       <td class="name">${row.name}</td>
@@ -85,6 +142,7 @@ function renderTable(data) {
         <span class="elo-num">${Math.round(elo)}</span>
         ${delta ? `<span class="elo-delta ${delta > 0 ? "up" : "down"}">${delta > 0 ? "▲" : "▼"} ${Math.abs(delta).toFixed(0)}</span>` : ""}
       </td>
+      ${leagueCol}
     `;
     tbody.appendChild(tr);
   });
@@ -138,7 +196,6 @@ function renderPredictor(data) {
     <p class="xg-line">Expected goals: <strong>${pred.xgHome.toFixed(2)}</strong> — <strong>${pred.xgAway.toFixed(2)}</strong> · Elo edge: <strong>${Math.round(eloH - eloA + data.home_advantage_elo)}</strong></p>
   `;
 
-  // Scoreline grid — cap display at 5x5 (the tail is negligible)
   const cap = 5;
   let gridHTML = `<div class="grid-wrap"><table class="scoregrid"><thead><tr><th></th>`;
   for (let j = 0; j <= cap; j++) gridHTML += `<th>${j}</th>`;
@@ -173,9 +230,26 @@ function renderPredictor(data) {
   $("#pred-result").innerHTML = barHTML + `<div class="pred-columns">${gridHTML}${legendHTML}</div>`;
 }
 
-// --- view: season simulator ------------------------------------------
+// --- view: season / UCL simulator ------------------------------------
 
 function renderSeason(data) {
+  if (isUCL()) {
+    renderUCLSeason(data);
+    return;
+  }
+
+  const simHead = $("#sim-head");
+  simHead.innerHTML = `
+    <tr>
+      <th>#</th>
+      <th class="name">Team</th>
+      <th>Expected pts</th>
+      <th>Champion</th>
+      <th>Top 4</th>
+      <th>Relegation</th>
+    </tr>
+  `;
+
   const status = $("#sim-status");
   if (!state.simulation) {
     status.textContent = "Click Run to Monte-Carlo the remaining fixtures.";
@@ -201,12 +275,60 @@ function renderSeason(data) {
   `).join("");
 }
 
+function renderUCLSeason(data) {
+  const simHead = $("#sim-head");
+  simHead.innerHTML = `
+    <tr>
+      <th>#</th>
+      <th class="name">Team</th>
+      <th>Pts</th>
+      <th>Top 8</th>
+      <th>Top 24</th>
+      <th>QF</th>
+      <th>SF</th>
+      <th>Final</th>
+      <th>Winner</th>
+    </tr>
+  `;
+
+  const status = $("#sim-status");
+  if (!state.simulation) {
+    status.textContent = "Click Run to simulate the UCL from the league phase onward.";
+    $("#sim-body").innerHTML = "";
+    return;
+  }
+  status.textContent = `${state.simulation.runs.toLocaleString()} simulated tournaments`;
+
+  const rows = state.simulation.results;
+  const maxWinner = Math.max(...rows.map(r => r.winner), 1e-6);
+  const maxTop8 = Math.max(...rows.map(r => r.top8), 1e-6);
+
+  $("#sim-body").innerHTML = rows.map((r, i) => `
+    <tr>
+      <td class="pos">${i + 1}</td>
+      <td class="name">${r.name}</td>
+      <td class="num">${r.expectedPoints.toFixed(1)}</td>
+      <td class="prob"><span class="prob-bar topn" style="--fill:${(r.top8 / maxTop8 * 100).toFixed(0)}%"></span>${fmtPct(r.top8)}</td>
+      <td class="prob">${fmtPct(r.top24)}</td>
+      <td class="prob">${fmtPct(r.qf)}</td>
+      <td class="prob">${fmtPct(r.sf)}</td>
+      <td class="prob">${fmtPct(r.final)}</td>
+      <td class="prob"><span class="prob-bar" style="--fill:${(r.winner / maxWinner * 100).toFixed(0)}%"></span><strong>${fmtPct(r.winner)}</strong></td>
+    </tr>
+  `).join("");
+}
+
 function runSimulation(data) {
   const runs = parseInt($("#sim-runs").value, 10) || 5000;
   const status = $("#sim-status");
-  status.textContent = `Running ${runs.toLocaleString()} seasons…`;
+  status.textContent = `Running ${runs.toLocaleString()} ${isUCL() ? "tournaments" : "seasons"}…`;
   requestAnimationFrame(() => {
-    const results = simulateSeason(data, { runs, seed: 42 });
+    let results;
+    if (isUCL()) {
+      results = simulateUCL(data, { runs, seed: 42 });
+    } else {
+      results = simulateSeason(data, { runs, seed: 42 });
+    }
     state.simulation = { runs, results };
     renderSeason(data);
   });
@@ -238,7 +360,7 @@ async function switchLeague(code) {
   } catch (e) {
     $("#loading").innerHTML = `
       <p><strong>No data yet.</strong> The pipeline hasn't produced <code>docs/data/${code}.json</code>.</p>
-      <p class="muted">Run <code>python scripts/build_elo.py --league all</code> locally, or wait for the CI cron to publish.</p>
+      <p class="muted">Run the build pipeline locally, or wait for the CI cron to publish.</p>
     `;
     return;
   }
@@ -272,7 +394,7 @@ async function boot() {
   } catch (e) {
     $("#loading").innerHTML = `
       <p><strong>No data yet.</strong> The pipeline hasn't produced <code>docs/data/${initial}.json</code>.</p>
-      <p class="muted">Run <code>python scripts/build_elo.py --league all</code> locally, or wait for the CI cron to publish.</p>
+      <p class="muted">Run the build pipeline locally, or wait for the CI cron to publish.</p>
     `;
     return;
   }

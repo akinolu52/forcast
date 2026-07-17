@@ -327,6 +327,28 @@ button.primary:hover { filter: brightness(1.1); }
 }
 .season-table .prob-bar.topn { background: var(--home); }
 .season-table .prob-bar.rel { background: var(--away); }
+.season-table td.prob { min-width: 80px; }
+
+/* --- UCL --- */
+
+.ucl-btn { border-color: #1a3d7c; color: #1a3d7c; }
+@media (prefers-color-scheme: dark) {
+  .ucl-btn { border-color: #4a8fff; color: #4a8fff; }
+}
+.ucl-btn.active { background: #1a3d7c; color: white; border-color: #1a3d7c; }
+@media (prefers-color-scheme: dark) {
+  .ucl-btn.active { background: #1a3d7c; border-color: #4a8fff; }
+}
+
+.zone-auto { border-left: 3px solid var(--home); }
+.zone-playoff { border-left: 3px solid #e8a317; }
+.zone-elim { border-left: 3px solid var(--away); }
+
+td.league-tag {
+  font-size: 0.75rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
 
 /* --- footer --- */
 
