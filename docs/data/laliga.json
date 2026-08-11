@@ -1,18 +1,18 @@
 {
   "league": "LaLiga",
   "name": "Spanish La Liga",
-  "generated": "2026-08-08T06:33:13Z",
+  "generated": "2026-08-11T07:17:38Z",
   "season_start": 2026,
-  "home_advantage_elo": 70.65,
+  "home_advantage_elo": 70.67,
   "calibration": {
-    "mu_total": 2.6779,
-    "beta": 1.4376
+    "mu_total": 2.6881,
+    "beta": 1.4375
   },
   "teams": [
     {
-      "name": "Partick",
+      "name": "Arouca",
       "elo": 1564.16,
-      "last_match": "2026-08-01",
+      "last_match": "2026-08-08",
       "history": [
         {
           "m": "2026-08",
@@ -21,9 +21,9 @@
       ]
     },
     {
-      "name": "Ayr",
+      "name": "Porto",
       "elo": 1564.13,
-      "last_match": "2026-08-01",
+      "last_match": "2026-08-09",
       "history": [
         {
           "m": "2026-08",
@@ -32,20 +32,31 @@
       ]
     },
     {
-      "name": "Livingston",
-      "elo": 1564.13,
-      "last_match": "2026-08-01",
+      "name": "Gil Vicente",
+      "elo": 1557.74,
+      "last_match": "2026-08-09",
       "history": [
         {
           "m": "2026-08",
-          "elo": 1564.1
+          "elo": 1557.7
         }
       ]
     },
     {
-      "name": "Dunfermline",
+      "name": "Maritimo",
+      "elo": 1557.74,
+      "last_match": "2026-08-08",
+      "history": [
+        {
+          "m": "2026-08",
+          "elo": 1557.7
+        }
+      ]
+    },
+    {
+      "name": "Academico Viseu",
       "elo": 1548.16,
-      "last_match": "2026-08-01",
+      "last_match": "2026-08-09",
       "history": [
         {
           "m": "2026-08",
@@ -54,9 +65,9 @@
       ]
     },
     {
-      "name": "Stenhousemuir",
+      "name": "Famalicao",
       "elo": 1548.16,
-      "last_match": "2026-08-01",
+      "last_match": "2026-08-07",
       "history": [
         {
           "m": "2026-08",
@@ -65,9 +76,31 @@
       ]
     },
     {
-      "name": "Inverness C",
+      "name": "Sp Braga",
+      "elo": 1548.16,
+      "last_match": "2026-08-09",
+      "history": [
+        {
+          "m": "2026-08",
+          "elo": 1548.2
+        }
+      ]
+    },
+    {
+      "name": "Sp Lisbon",
+      "elo": 1548.16,
+      "last_match": "2026-08-08",
+      "history": [
+        {
+          "m": "2026-08",
+          "elo": 1548.2
+        }
+      ]
+    },
+    {
+      "name": "Benfica",
       "elo": 1541.74,
-      "last_match": "2026-08-01",
+      "last_match": "2026-08-09",
       "history": [
         {
           "m": "2026-08",
@@ -76,9 +109,9 @@
       ]
     },
     {
-      "name": "Raith Rvs",
+      "name": "Estoril",
       "elo": 1541.74,
-      "last_match": "2026-08-01",
+      "last_match": "2026-08-07",
       "history": [
         {
           "m": "2026-08",
@@ -87,9 +120,53 @@
       ]
     },
     {
-      "name": "Arbroath",
+      "name": "Estrela",
+      "elo": 1541.74,
+      "last_match": "2026-08-08",
+      "history": [
+        {
+          "m": "2026-08",
+          "elo": 1541.7
+        }
+      ]
+    },
+    {
+      "name": "Moreirense",
+      "elo": 1541.74,
+      "last_match": "2026-08-09",
+      "history": [
+        {
+          "m": "2026-08",
+          "elo": 1541.7
+        }
+      ]
+    },
+    {
+      "name": "Casa Pia",
+      "elo": 1532.16,
+      "last_match": "2026-08-08",
+      "history": [
+        {
+          "m": "2026-08",
+          "elo": 1532.2
+        }
+      ]
+    },
+    {
+      "name": "Rio Ave",
+      "elo": 1532.16,
+      "last_match": "2026-08-09",
+      "history": [
+        {
+          "m": "2026-08",
+          "elo": 1532.2
+        }
+      ]
+    },
+    {
+      "name": "Alverca",
       "elo": 1525.76,
-      "last_match": "2026-08-01",
+      "last_match": "2026-08-09",
       "history": [
         {
           "m": "2026-08",
@@ -98,20 +175,9 @@
       ]
     },
     {
-      "name": "Queens Park",
-      "elo": 1525.76,
-      "last_match": "2026-08-01",
-      "history": [
-        {
-          "m": "2026-08",
-          "elo": 1525.8
-        }
-      ]
-    },
-    {
-      "name": "Morton",
+      "name": "Guimaraes",
       "elo": 1525.74,
-      "last_match": "2026-08-01",
+      "last_match": "2026-08-08",
       "history": [
         {
           "m": "2026-08",
@@ -122,7 +188,7 @@
   ],
   "table": [
     {
-      "name": "Ayr",
+      "name": "Porto",
       "played": 1,
       "won": 1,
       "drawn": 0,
@@ -133,18 +199,7 @@
       "gd": 2
     },
     {
-      "name": "Livingston",
-      "played": 1,
-      "won": 1,
-      "drawn": 0,
-      "lost": 0,
-      "gf": 2,
-      "ga": 0,
-      "pts": 3,
-      "gd": 2
-    },
-    {
-      "name": "Partick",
+      "name": "Arouca",
       "played": 1,
       "won": 1,
       "drawn": 0,
@@ -155,7 +210,95 @@
       "gd": 1
     },
     {
-      "name": "Raith Rvs",
+      "name": "Gil Vicente",
+      "played": 1,
+      "won": 1,
+      "drawn": 0,
+      "lost": 0,
+      "gf": 1,
+      "ga": 0,
+      "pts": 3,
+      "gd": 1
+    },
+    {
+      "name": "Maritimo",
+      "played": 1,
+      "won": 1,
+      "drawn": 0,
+      "lost": 0,
+      "gf": 1,
+      "ga": 0,
+      "pts": 3,
+      "gd": 1
+    },
+    {
+      "name": "Academico Viseu",
+      "played": 1,
+      "won": 0,
+      "drawn": 1,
+      "lost": 0,
+      "gf": 2,
+      "ga": 2,
+      "pts": 1,
+      "gd": 0
+    },
+    {
+      "name": "Benfica",
+      "played": 1,
+      "won": 0,
+      "drawn": 1,
+      "lost": 0,
+      "gf": 2,
+      "ga": 2,
+      "pts": 1,
+      "gd": 0
+    },
+    {
+      "name": "Estrela",
+      "played": 1,
+      "won": 0,
+      "drawn": 1,
+      "lost": 0,
+      "gf": 2,
+      "ga": 2,
+      "pts": 1,
+      "gd": 0
+    },
+    {
+      "name": "Moreirense",
+      "played": 1,
+      "won": 0,
+      "drawn": 1,
+      "lost": 0,
+      "gf": 2,
+      "ga": 2,
+      "pts": 1,
+      "gd": 0
+    },
+    {
+      "name": "Sp Braga",
+      "played": 1,
+      "won": 0,
+      "drawn": 1,
+      "lost": 0,
+      "gf": 2,
+      "ga": 2,
+      "pts": 1,
+      "gd": 0
+    },
+    {
+      "name": "Sp Lisbon",
+      "played": 1,
+      "won": 0,
+      "drawn": 1,
+      "lost": 0,
+      "gf": 2,
+      "ga": 2,
+      "pts": 1,
+      "gd": 0
+    },
+    {
+      "name": "Estoril",
       "played": 1,
       "won": 0,
       "drawn": 1,
@@ -166,7 +309,7 @@
       "gd": 0
     },
     {
-      "name": "Stenhousemuir",
+      "name": "Famalicao",
       "played": 1,
       "won": 0,
       "drawn": 1,
@@ -177,29 +320,7 @@
       "gd": 0
     },
     {
-      "name": "Dunfermline",
-      "played": 1,
-      "won": 0,
-      "drawn": 1,
-      "lost": 0,
-      "gf": 0,
-      "ga": 0,
-      "pts": 1,
-      "gd": 0
-    },
-    {
-      "name": "Inverness C",
-      "played": 1,
-      "won": 0,
-      "drawn": 1,
-      "lost": 0,
-      "gf": 0,
-      "ga": 0,
-      "pts": 1,
-      "gd": 0
-    },
-    {
-      "name": "Morton",
+      "name": "Casa Pia",
       "played": 1,
       "won": 0,
       "drawn": 0,
@@ -210,18 +331,29 @@
       "gd": -1
     },
     {
-      "name": "Arbroath",
+      "name": "Guimaraes",
       "played": 1,
       "won": 0,
       "drawn": 0,
       "lost": 1,
       "gf": 0,
-      "ga": 2,
+      "ga": 1,
       "pts": 0,
-      "gd": -2
+      "gd": -1
     },
     {
-      "name": "Queens Park",
+      "name": "Rio Ave",
+      "played": 1,
+      "won": 0,
+      "drawn": 0,
+      "lost": 1,
+      "gf": 0,
+      "ga": 1,
+      "pts": 0,
+      "gd": -1
+    },
+    {
+      "name": "Alverca",
       "played": 1,
       "won": 0,
       "drawn": 0,
@@ -234,39 +366,60 @@
   ],
   "played": [
     {
-      "date": "2026-08-01",
-      "home": "Ayr",
-      "away": "Arbroath",
-      "hg": 2,
-      "ag": 0
-    },
-    {
-      "date": "2026-08-01",
-      "home": "Inverness C",
-      "away": "Dunfermline",
-      "hg": 0,
-      "ag": 0
-    },
-    {
-      "date": "2026-08-01",
-      "home": "Livingston",
-      "away": "Queens Park",
-      "hg": 2,
-      "ag": 0
-    },
-    {
-      "date": "2026-08-01",
-      "home": "Morton",
-      "away": "Partick",
-      "hg": 0,
-      "ag": 1
-    },
-    {
-      "date": "2026-08-01",
-      "home": "Raith Rvs",
-      "away": "Stenhousemuir",
+      "date": "2026-08-07",
+      "home": "Estoril",
+      "away": "Famalicao",
       "hg": 1,
       "ag": 1
+    },
+    {
+      "date": "2026-08-08",
+      "home": "Maritimo",
+      "away": "Casa Pia",
+      "hg": 1,
+      "ag": 0
+    },
+    {
+      "date": "2026-08-08",
+      "home": "Guimaraes",
+      "away": "Arouca",
+      "hg": 0,
+      "ag": 1
+    },
+    {
+      "date": "2026-08-08",
+      "home": "Estrela",
+      "away": "Sp Lisbon",
+      "hg": 2,
+      "ag": 2
+    },
+    {
+      "date": "2026-08-09",
+      "home": "Porto",
+      "away": "Alverca",
+      "hg": 2,
+      "ag": 0
+    },
+    {
+      "date": "2026-08-09",
+      "home": "Benfica",
+      "away": "Academico Viseu",
+      "hg": 2,
+      "ag": 2
+    },
+    {
+      "date": "2026-08-09",
+      "home": "Gil Vicente",
+      "away": "Rio Ave",
+      "hg": 1,
+      "ag": 0
+    },
+    {
+      "date": "2026-08-09",
+      "home": "Moreirense",
+      "away": "Sp Braga",
+      "hg": 2,
+      "ag": 2
     }
   ],
   "fixtures": []
