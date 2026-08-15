@@ -1,11 +1,11 @@
 {
   "league": "LaLiga",
   "name": "Spanish La Liga",
-  "generated": "2026-08-11T07:17:38Z",
+  "generated": "2026-08-15T06:18:45Z",
   "season_start": 2026,
-  "home_advantage_elo": 70.67,
+  "home_advantage_elo": 70.66,
   "calibration": {
-    "mu_total": 2.6881,
+    "mu_total": 2.6915,
     "beta": 1.4375
   },
   "teams": [
@@ -76,6 +76,17 @@
       ]
     },
     {
+      "name": "Nacional",
+      "elo": 1548.16,
+      "last_match": "2026-08-10",
+      "history": [
+        {
+          "m": "2026-08",
+          "elo": 1548.2
+        }
+      ]
+    },
+    {
       "name": "Sp Braga",
       "elo": 1548.16,
       "last_match": "2026-08-09",
@@ -134,6 +145,17 @@
       "name": "Moreirense",
       "elo": 1541.74,
       "last_match": "2026-08-09",
+      "history": [
+        {
+          "m": "2026-08",
+          "elo": 1541.7
+        }
+      ]
+    },
+    {
+      "name": "Santa Clara",
+      "elo": 1541.74,
+      "last_match": "2026-08-10",
       "history": [
         {
           "m": "2026-08",
@@ -266,6 +288,28 @@
     },
     {
       "name": "Moreirense",
+      "played": 1,
+      "won": 0,
+      "drawn": 1,
+      "lost": 0,
+      "gf": 2,
+      "ga": 2,
+      "pts": 1,
+      "gd": 0
+    },
+    {
+      "name": "Nacional",
+      "played": 1,
+      "won": 0,
+      "drawn": 1,
+      "lost": 0,
+      "gf": 2,
+      "ga": 2,
+      "pts": 1,
+      "gd": 0
+    },
+    {
+      "name": "Santa Clara",
       "played": 1,
       "won": 0,
       "drawn": 1,
@@ -418,6 +462,13 @@
       "date": "2026-08-09",
       "home": "Moreirense",
       "away": "Sp Braga",
+      "hg": 2,
+      "ag": 2
+    },
+    {
+      "date": "2026-08-10",
+      "home": "Santa Clara",
+      "away": "Nacional",
       "hg": 2,
       "ag": 2
     }
