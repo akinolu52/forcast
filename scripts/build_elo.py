@@ -377,14 +377,24 @@ def main() -> None:
     args = ap.parse_args()
 
     codes = [args.league] if args.league != "all" else list(LEAGUES)
+    built = 0
     for code in codes:
         league = LEAGUES[code]
-        payload = build_league(league)
+        try:
+            payload = build_league(league)
+        except SystemExit as e:
+            if len(codes) > 1:
+                print(f"{league.code}: skipped — {e}", file=sys.stderr)
+                continue
+            raise
         path = write_output(league, payload)
+        built += 1
         print(f"{league.code}: wrote {path} ({len(payload['teams'])} teams, "
               f"home_adv={payload['home_advantage_elo']} elo)")
         for row in payload["teams"][: args.print_top]:
             print(f"  {row['elo']:7.1f}  {row['name']}")
+    if built == 0:
+        raise SystemExit("No leagues built — all data missing.")
 
 
 if __name__ == "__main__":

@@ -43,7 +43,8 @@ def local_path(league: League, start_year: int) -> pathlib.Path:
 
 
 def fetch_season(
-    client: httpx.Client, league: League, start_year: int, *, refresh: bool
+    client: httpx.Client, league: League, start_year: int, *, refresh: bool,
+    retries: int = 3,
 ) -> bool:
     """Return True if a fetch happened, False if we used the cache."""
     dest = local_path(league, start_year)
@@ -53,11 +54,31 @@ def fetch_season(
         return False
 
     url = season_url(league, start_year)
-    r = client.get(url, follow_redirects=True, timeout=30)
-    if r.status_code == 404:
-        print(f"  [skip] {league.code} {start_year}: 404 (no data yet)")
-        return False
-    r.raise_for_status()
+    last_exc: Exception | None = None
+    for attempt in range(retries + 1):
+        try:
+            r = client.get(url, follow_redirects=True, timeout=30)
+            if r.status_code == 404:
+                print(f"  [skip] {league.code} {start_year}: 404 (no data yet)")
+                return False
+            if r.status_code in (429, 500, 502, 503, 504) and attempt < retries:
+                wait = 2 ** (attempt + 1)
+                print(f"  [retry] {league.code} {start_year}: {r.status_code}, waiting {wait}s")
+                time.sleep(wait)
+                continue
+            r.raise_for_status()
+            break
+        except httpx.HTTPError as e:
+            last_exc = e
+            if attempt < retries:
+                wait = 2 ** (attempt + 1)
+                print(f"  [retry] {league.code} {start_year}: {e}, waiting {wait}s")
+                time.sleep(wait)
+            else:
+                raise
+    else:
+        if last_exc:
+            raise last_exc
 
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_bytes(r.content)
