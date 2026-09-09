@@ -86,13 +86,20 @@ def fetch_season(
     return True
 
 
-MAX_CONSECUTIVE_FAILURES = 3
+MAX_CONSECUTIVE_FAILURES = 2
 
 
-def fetch_league(league: League, *, refresh: bool) -> None:
+class SourceDown(Exception):
+    """Every league lives on the same host, so once a couple of seasons in a
+    row have failed (each already retried with backoff) there is no point
+    asking for the next league either."""
+
+
+def fetch_league(league: League, *, refresh: bool, failures: int = 0) -> int:
+    """Return the running count of consecutive failed seasons so the caller
+    can carry it across leagues."""
     print(f"Fetching {league.name} ({league.code})")
     end = current_season_start()
-    failures = 0
     with httpx.Client(headers={"User-Agent": "forcast/0 (github.com/akinolu52/forcast)"}) as client:
         for start_year in range(league.first_season, end + 1):
             try:
@@ -103,12 +110,11 @@ def fetch_league(league: League, *, refresh: bool) -> None:
                 print(f"  [err]  {league.code} {start_year}: {e}", file=sys.stderr)
                 failures += 1
                 if failures >= MAX_CONSECUTIVE_FAILURES:
-                    print(
-                        f"  [abort] {league.code}: {failures} consecutive failures, "
-                        f"source looks down — keeping cached seasons",
-                        file=sys.stderr,
-                    )
-                    return
+                    raise SourceDown(
+                        f"{failures} consecutive seasons failed (last: {league.code} "
+                        f"{start_year}); giving up on football-data.co.uk for this run"
+                    ) from e
+    return failures
 
 
 def main() -> None:
@@ -118,8 +124,13 @@ def main() -> None:
     args = ap.parse_args()
 
     codes = [args.league] if args.league != "all" else list(LEAGUES)
+    failures = 0
     for code in codes:
-        fetch_league(LEAGUES[code], refresh=args.refresh)
+        try:
+            failures = fetch_league(LEAGUES[code], refresh=args.refresh, failures=failures)
+        except SourceDown as e:
+            print(f"[abort] {e} — building from cached seasons", file=sys.stderr)
+            break
 
 
 if __name__ == "__main__":
