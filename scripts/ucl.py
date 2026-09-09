@@ -33,22 +33,24 @@ from predictor import Calibration  # noqa: E402
 
 DOCS_DATA = pathlib.Path(__file__).parent.parent / "docs" / "data"
 
+# Domestic clubs use the canonical openfootball names that build_elo.py
+# emits, so their live Elo is picked up from docs/data/*.json.
 UCL_TEAMS_2024 = [
     ("Real Madrid", "LaLiga"),
-    ("Man City", "EPL"),
-    ("Bayern Munich", "Bundesliga"),
-    ("Paris SG", "Ligue1"),
-    ("Inter", "SerieA"),
-    ("Barcelona", "LaLiga"),
-    ("Dortmund", "Bundesliga"),
+    ("Manchester City FC", "EPL"),
+    ("Bayern München", "Bundesliga"),
+    ("Paris Saint-Germain", "Ligue1"),
+    ("FC Internazionale Milano", "SerieA"),
+    ("FC Barcelona", "LaLiga"),
+    ("Borussia Dortmund", "Bundesliga"),
     ("RB Leipzig", "Bundesliga"),
-    ("Liverpool", "EPL"),
-    ("Leverkusen", "Bundesliga"),
-    ("Ath Madrid", "LaLiga"),
-    ("Atalanta", "SerieA"),
+    ("Liverpool FC", "EPL"),
+    ("Bayer 04 Leverkusen", "Bundesliga"),
+    ("Atlético Madrid", "LaLiga"),
+    ("Atalanta Bergamo", "SerieA"),
     ("Juventus", "SerieA"),
     ("Benfica", "other"),
-    ("Arsenal", "EPL"),
+    ("Arsenal FC", "EPL"),
     ("Club Brugge", "other"),
     ("Shakhtar", "other"),
     ("AC Milan", "SerieA"),
@@ -56,16 +58,16 @@ UCL_TEAMS_2024 = [
     ("Sporting", "other"),
     ("PSV", "other"),
     ("Celtic", "other"),
-    ("Monaco", "Ligue1"),
-    ("Aston Villa", "EPL"),
-    ("Bologna", "SerieA"),
-    ("Girona", "LaLiga"),
-    ("Stuttgart", "Bundesliga"),
+    ("AS Monaco", "Ligue1"),
+    ("Aston Villa FC", "EPL"),
+    ("Bologna FC", "SerieA"),
+    ("Girona FC", "LaLiga"),
+    ("VfB Stuttgart", "Bundesliga"),
     ("Sturm Graz", "other"),
-    ("Brest", "Ligue1"),
+    ("Stade Brestois 29", "Ligue1"),
     ("Red Star", "other"),
     ("Salzburg", "other"),
-    ("Lille", "Ligue1"),
+    ("Lille OSC", "Ligue1"),
     ("Dinamo Zagreb", "other"),
     ("Young Boys", "other"),
     ("Slovan Bratislava", "other"),
@@ -78,6 +80,7 @@ FALLBACK_ELOS = {
     "Celtic": 1460, "Sturm Graz": 1380, "Red Star": 1390,
     "Salzburg": 1430, "Dinamo Zagreb": 1400, "Young Boys": 1380,
     "Slovan Bratislava": 1350, "Sparta Prague": 1410,
+    "Girona FC": 1520,  # relegated since; not in the current La Liga JSON
 }
 
 UCL_HOME_ADV = 45.0

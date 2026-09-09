@@ -1,8 +1,9 @@
-"""End-to-end smoke test for build_elo.py without hitting the network.
+"""End-to-end smoke test for the pipeline without hitting the network.
 
-Synthesizes two mini seasons of CSV data (schema matches
-football-data.co.uk), points DATA_DIR / OUT_DIR at a temp directory, runs
-the pipeline, and asserts core invariants:
+Checks the openfootball text parser and club alias index on embedded
+samples, then synthesizes two mini seasons of CSV data (the schema
+fetch_data.py writes), points DATA_DIR / OUT_DIR at a temp directory,
+runs build_elo, and asserts core invariants:
 
   * Every team in each season appears in the ratings output.
   * The current-season league table matches naive point counts.
@@ -28,11 +29,68 @@ import tempfile
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 
 import build_elo  # noqa: E402
+from clubs import ClubIndex  # noqa: E402
 from leagues import League  # noqa: E402
+from openfootball import parse_season  # noqa: E402
 from predictor import Calibration, predict  # noqa: E402
 
 
 FIELDS = ["Date", "HomeTeam", "AwayTeam", "FTHG", "FTAG"]
+
+# Both openfootball match layouts, a goal-scorer block, a postponed fixture,
+# an awarded result, a club with an apostrophe, and a COVID-style July
+# season end after New Year.
+SAMPLE_SEASON = """\
+= Test League 2025/26
+
+▪ Matchday 1
+  Fri Aug 15 2025
+    20:00  Alpha FC                 v Beta United FC            2-1 (1-0)
+  Sat Aug 16
+    15:00  Gamma Town               v Delta City               [postponed]
+           Borussia M'gladbach      v Alpha FC                 0-0
+                  (Some PLAYER 12', Other GUY 45+2')
+▪ Matchday 2
+  Thu Jan 1
+  15:00  Delta City               3-0 (1-0)  Gamma Town   [awarded]
+  Sat Jul 4
+  16:00  Beta United FC           1-1 (0-1)  Borussia M'gladbach
+"""
+
+SAMPLE_CLUBS = """\
+= Test
+
+Alpha FC, 1900, @ Alpha Park, Alphaville
+  | Alpha | Alpha Football Club
+AC Cesena (1940-2018), Cesena
+  | Cesena
+RC Celta Vigo,  Vigo
+  | Celta | RC Celta de Vigo
+"""
+
+
+def check_parser() -> None:
+    ms = parse_season(SAMPLE_SEASON, 2025)
+    got = [(m.date.isoformat(), m.home, m.away, m.hg, m.ag) for m in ms]
+    want = [
+        ("2025-08-15", "Alpha FC", "Beta United FC", 2, 1),
+        ("2025-08-16", "Gamma Town", "Delta City", None, None),
+        ("2025-08-16", "Borussia M'gladbach", "Alpha FC", 0, 0),
+        ("2026-01-01", "Delta City", "Gamma Town", 3, 0),
+        ("2026-07-04", "Beta United FC", "Borussia M'gladbach", 1, 1),
+    ]
+    assert got == want, f"parser mismatch:\n got={got}\nwant={want}"
+
+    idx = ClubIndex()
+    idx.load(SAMPLE_CLUBS)
+    assert idx.canonical("Alpha") == "Alpha FC"
+    assert idx.canonical("alpha football club") == "Alpha FC"
+    assert idx.canonical("Cesena") == "AC Cesena", "lifespan suffix not stripped"
+    assert idx.canonical("RC Celta") == "RC Celta Vigo", "generic-token fallback failed"
+    assert idx.canonical("Real Madrid C.F.") == "Real Madrid C.F."  # unknown, kept
+    assert idx.canonical("Real Madrid CF") == "Real Madrid C.F.", "unknown not adopted"
+    assert idx.unknown == {"Real Madrid C.F."}
+    print("self_check: parser + club index OK")
 
 
 def synth_season(teams: list[str], year: int, seed: int) -> list[dict]:
@@ -69,6 +127,8 @@ def write_csv(path: pathlib.Path, rows: list[dict]) -> None:
 
 
 def main() -> None:
+    check_parser()
+
     tmp = pathlib.Path(tempfile.mkdtemp(prefix="forcast-self-check-"))
     data_dir = tmp / "data"
     out_dir = tmp / "docs" / "data"
@@ -76,8 +136,8 @@ def main() -> None:
     build_elo.OUT_DIR = out_dir
 
     league = League(
-        code="TEST", name="Test League", fd_code="XX",
-        first_season=2020, k_factor=32, n_teams=6,
+        code="TEST", name="Test League", source="test", path="{season}/test.txt",
+        clubs=(), first_season=2020, k_factor=32, n_teams=6,
         relegation_slots=1, ucl_slots=2,
     )
 

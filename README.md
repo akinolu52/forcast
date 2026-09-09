@@ -24,9 +24,10 @@ Under active development. See [`PLAN.md`](./PLAN.md) for the roadmap.
 
 ## How it works
 
-1. **Offline (Python).** `scripts/fetch_data.py` downloads historical results
-   from [football-data.co.uk](https://www.football-data.co.uk/).
-   `scripts/build_elo.py` computes Elo ratings for every club across every
+1. **Offline (Python).** `scripts/fetch_data.py` downloads results and
+   fixtures from [openfootball](https://github.com/openfootball) (public
+   domain, hosted on GitHub) and normalises club names through its alias
+   tables. `scripts/build_elo.py` computes Elo ratings for every club across every
    competition in a single shared pool (so UCL matches anchor leagues
    against each other), then emits a static JSON per league into
    `docs/data/`.
@@ -92,4 +93,6 @@ The Elo pipeline and Poisson match model are adapted from
 [vishalmysore/webForecast](https://github.com/vishalmysore/webForecast) (MIT).
 Upstream notices are preserved in [`LICENSE`](./LICENSE).
 
-Match results come from [football-data.co.uk](https://www.football-data.co.uk/).
+Match results and fixtures come from [openfootball](https://github.com/openfootball)
+(public domain). Coverage starts 2000/01 for the EPL, 2010/11 Bundesliga,
+2012/13 La Liga, 2013/14 Serie A and 2014/15 Ligue 1.
