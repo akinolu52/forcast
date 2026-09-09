@@ -1,5 +1,5 @@
-"""Compute club Elo ratings from cached football-data.co.uk CSVs and emit
-a static JSON payload per league for the browser to consume.
+"""Compute club Elo ratings from the cached per-season CSVs written by
+fetch_data.py and emit a static JSON payload per league for the browser.
 
 Adapted from vishalmysore/webForecast's `scripts/build_elo.py` (MIT).
 Key differences from the upstream (which rates national teams):
@@ -71,11 +71,12 @@ class TeamState:
 # --- reading -----------------------------------------------------------------
 
 def parse_date(s: str) -> dt.date | None:
-    """football-data.co.uk uses DD/MM/YY or DD/MM/YYYY. Return None on empty."""
+    """fetch_data.py writes ISO dates; DD/MM/YY(YY) is accepted for older
+    football-data.co.uk style CSVs. Return None on empty."""
     s = (s or "").strip()
     if not s:
         return None
-    for fmt in ("%d/%m/%Y", "%d/%m/%y"):
+    for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%d/%m/%y"):
         try:
             return dt.datetime.strptime(s, fmt).date()
         except ValueError:
@@ -259,9 +260,7 @@ def build_table(matches: list[dict]) -> list[dict]:
 
 
 def collect_fixtures(latest_csv: pathlib.Path) -> list[dict]:
-    """Rows with a date but no score are the remaining fixtures. Rare in
-    football-data.co.uk (they typically omit unplayed rows), but harmless
-    to look for."""
+    """Rows with a date but no score are the remaining fixtures."""
     if not latest_csv.exists():
         return []
     out: list[dict] = []

@@ -1,9 +1,8 @@
 name: Refresh league ratings
 
 on:
-  # football-data.co.uk publishes updated CSVs on Mondays and Fridays,
-  # so we pick a window a few hours after each so the current-season
-  # file has settled. Times are UTC.
+  # openfootball commits results within a day or two of each round, so a
+  # couple of runs a week keeps the current season fresh. Times are UTC.
   schedule:
     - cron: "0 6 * * 2"    # Tuesday 06:00
     - cron: "0 6 * * 6"    # Saturday 06:00
@@ -65,14 +64,14 @@ jobs:
           fi
 
       # Historical seasons never change, so keep them between runs. Only the
-      # current-season CSV needs the network, and if football-data.co.uk is
-      # down we can still rebuild from last run's copy.
+      # current-season file needs the network, and if the source is down we
+      # can still rebuild from last run's copy.
       - name: Restore cached match CSVs
         uses: actions/cache/restore@v4
         with:
           path: data
-          key: football-data-${{ github.run_id }}
-          restore-keys: football-data-
+          key: openfootball-${{ github.run_id }}
+          restore-keys: openfootball-
 
       - name: Fetch match CSVs
         run: |
@@ -87,7 +86,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: data
-          key: football-data-${{ github.run_id }}
+          key: openfootball-${{ github.run_id }}
 
       - name: Rebuild league JSON
         run: |
