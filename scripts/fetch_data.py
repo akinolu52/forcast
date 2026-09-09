@@ -86,16 +86,29 @@ def fetch_season(
     return True
 
 
+MAX_CONSECUTIVE_FAILURES = 3
+
+
 def fetch_league(league: League, *, refresh: bool) -> None:
     print(f"Fetching {league.name} ({league.code})")
     end = current_season_start()
+    failures = 0
     with httpx.Client(headers={"User-Agent": "forcast/0 (github.com/akinolu52/forcast)"}) as client:
         for start_year in range(league.first_season, end + 1):
             try:
                 if fetch_season(client, league, start_year, refresh=refresh):
+                    failures = 0
                     time.sleep(0.2)  # be polite to football-data.co.uk
             except httpx.HTTPError as e:
                 print(f"  [err]  {league.code} {start_year}: {e}", file=sys.stderr)
+                failures += 1
+                if failures >= MAX_CONSECUTIVE_FAILURES:
+                    print(
+                        f"  [abort] {league.code}: {failures} consecutive failures, "
+                        f"source looks down — keeping cached seasons",
+                        file=sys.stderr,
+                    )
+                    return
 
 
 def main() -> None:

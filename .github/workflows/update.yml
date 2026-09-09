@@ -64,6 +64,16 @@ jobs:
             echo "league=${INPUT_LEAGUE}" >> "$GITHUB_OUTPUT"
           fi
 
+      # Historical seasons never change, so keep them between runs. Only the
+      # current-season CSV needs the network, and if football-data.co.uk is
+      # down we can still rebuild from last run's copy.
+      - name: Restore cached match CSVs
+        uses: actions/cache/restore@v4
+        with:
+          path: data
+          key: football-data-${{ github.run_id }}
+          restore-keys: football-data-
+
       - name: Fetch match CSVs
         run: |
           FLAGS=""
@@ -71,6 +81,13 @@ jobs:
             FLAGS="--refresh"
           fi
           python scripts/fetch_data.py --league "${{ steps.pick.outputs.league }}" $FLAGS
+
+      - name: Save match CSV cache
+        if: always() && hashFiles('data/**') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: data
+          key: football-data-${{ github.run_id }}
 
       - name: Rebuild league JSON
         run: |
@@ -85,7 +102,10 @@ jobs:
           git config user.email "forcast-bot@users.noreply.github.com"
 
           git add docs/data/
-          if git diff --cached --quiet; then
+          # Ignore the `generated` timestamp so a rebuild from cached CSVs
+          # (source down, or simply no new results) doesn't publish a fresh
+          # date over unchanged ratings.
+          if git diff --cached --quiet -I '"generated":'; then
             echo "No changes to publish."
             exit 0
           fi
